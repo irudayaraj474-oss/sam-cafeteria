@@ -1,26 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import UserPage from './UserPage';
 import supabase from '../supabase';
-
 import AdminPage from './AdminPage';
-
 import KitchenPage from './KitchenPage';
+import NotificationToast from './components/common/NotificationToast';
+import { soundManager } from './lib/audioUtils';
+import { AnimatePresence } from 'framer-motion';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const path = window.location.pathname.toLowerCase();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [currentPage, setCurrentPage] = useState('home');
+
+  // Synchronize currentPage with URL path
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
     console.log('Detecting route for path:', path);
     
-    if (params.has('admin') || path.startsWith('/admin') || path === '/adminpage' || path === '/adminpage.jsx') return 'admin';
-    if (path.startsWith('/kitchen')) return 'kitchen';
-    
-    return 'home';
-  });
+    if (path.startsWith('/admin')) setCurrentPage('admin');
+    else if (path.startsWith('/kitchen')) setCurrentPage('kitchen');
+    else setCurrentPage('home');
+  }, [location.pathname]);
 
   // Global State shared between panels
   const [menuItems, setMenuItems] = useState([]);
   const [orderHistory, setOrderHistory] = useState([]);
+  const [latestOrder, setLatestOrder] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const toastTimerRef = useRef(null);
+
+  // Synchronize sound manager with state
+  useEffect(() => {
+    soundManager.setMuted(isMuted);
+  }, [isMuted]);
+
+  // Unlock AudioContext on first user interaction (Browser Policy)
+  useEffect(() => {
+    const handleUnlock = () => {
+      soundManager.unlock();
+      window.removeEventListener('click', handleUnlock);
+      window.removeEventListener('touchstart', handleUnlock);
+    };
+    window.addEventListener('click', handleUnlock);
+    window.addEventListener('touchstart', handleUnlock);
+    
+    return () => {
+      window.removeEventListener('click', handleUnlock);
+      window.removeEventListener('touchstart', handleUnlock);
+    };
+  }, []);
+
+  // Handle new order notification
+  const triggerNotification = (order) => {
+    // Only notify Admin or Kitchen staff
+    if (currentPage === 'admin' || currentPage === 'kitchen') {
+      setLatestOrder(order);
+      soundManager.play();
+
+      // Auto-dismiss after 5 seconds
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => {
+        setLatestOrder(null);
+      }, 5000);
+    }
+  };
 
   // Fetch data from Supabase on load
   useEffect(() => {
@@ -57,6 +102,7 @@ function App() {
         console.log('Order update received:', payload);
         if (payload.eventType === 'INSERT') {
           setOrderHistory(prev => [payload.new, ...prev]);
+          triggerNotification(payload.new);
         } else if (payload.eventType === 'UPDATE') {
           setOrderHistory(prev => prev.map(order => 
             order.id === payload.new.id ? payload.new : order
@@ -93,21 +139,12 @@ function App() {
       fetchData();
     }, 10000);
 
-    const handlePopState = () => {
-      const path = window.location.pathname.toLowerCase();
-      if (path.startsWith('/admin') || path === '/adminpage') setCurrentPage('admin');
-      else if (path.startsWith('/kitchen')) setCurrentPage('kitchen');
-      else setCurrentPage('home');
-    };
-    window.addEventListener('popstate', handlePopState);
-
     return () => {
       supabase.removeChannel(orderSubscription);
       supabase.removeChannel(menuSubscription);
       clearInterval(intervalId);
-      window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [currentPage]); // Re-subscribe if page changes to ensure context for triggerNotification
 
   const updateOrderStatus = async (orderId, newStatus) => {
     const { error } = await supabase
@@ -152,11 +189,8 @@ function App() {
   };
 
   const handleSetPage = (page) => {
-    setCurrentPage(page);
     const path = page === 'home' ? '/' : `/${page}`;
-    if (window.location.pathname !== path) {
-      window.history.pushState({ page }, '', path);
-    }
+    navigate(path);
   };
 
   const handleBackToHome = () => {
@@ -165,7 +199,7 @@ function App() {
 
   const handleNavigateKitchen = () => {
      handleSetPage('kitchen');
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background text-white">
@@ -187,6 +221,8 @@ function App() {
           onNavigateKitchen={handleNavigateKitchen}
           updateOrderStatus={updateOrderStatus}
           markOrderAsPaid={markOrderAsPaid}
+          isMuted={isMuted}
+          setIsMuted={setIsMuted}
         />
       )}
 
@@ -195,9 +231,19 @@ function App() {
           orderHistory={orderHistory}
           onUpdateStatus={updateOrderStatus}
           onBack={() => handleSetPage('admin')}
+          isMuted={isMuted}
+          setIsMuted={setIsMuted}
         />
       )}
 
+      <AnimatePresence>
+        {latestOrder && (
+          <NotificationToast 
+            order={latestOrder} 
+            onDismiss={() => setLatestOrder(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

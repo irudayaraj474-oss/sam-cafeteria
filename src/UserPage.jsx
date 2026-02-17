@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import UserLayout from './components/user/UserLayout';
 import UserHero from './components/user/UserHero';
 import MenuDisplay from './components/user/MenuDisplay';
@@ -10,48 +11,40 @@ import { cn } from './lib/utils';
 import supabase from '../supabase';
 
 const UserPage = ({ menuItems, orderHistory, onPlaceOrder }) => {
-  const [view, setView] = useState(() => {
-    const path = window.location.pathname.toLowerCase();
-    if (path === '/menu') return 'menu';
-    if (path === '/tables') return 'tables';
-    if (path === '/status') return 'status';
-    return 'landing';
-  });
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [view, setView] = useState('landing');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [currentOrder, setCurrentOrder] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
 
-  // Sync state with URL when view changes via state update
+  // Sync view state with current URL path
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    if (path === '/menu') setView('menu');
+    else if (path === '/tables') setView('tables');
+    else if (path === '/status') setView('status');
+    else setView('landing');
+  }, [location.pathname]);
+
+  // Handle view updates via router
   const handleSetView = (newView) => {
-    setView(newView);
     const path = newView === 'landing' ? '/' : `/${newView}`;
-    if (window.location.pathname !== path) {
-      window.history.pushState({ view: newView }, '', path);
-    }
+    navigate(path);
   };
 
 
   // Sync current order status if it exists in orderHistory
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname.toLowerCase();
-      if (path === '/menu') setView('menu');
-      else if (path === '/tables') setView('tables');
-      else if (path === '/status') setView('status');
-      else setView('landing');
-    };
-    window.addEventListener('popstate', handlePopState);
-
     if (currentOrder) {
       const updatedOrder = orderHistory.find(o => o.id === currentOrder.id);
       if (updatedOrder) {
         setCurrentOrder(updatedOrder);
       }
     }
-
-    return () => window.removeEventListener('popstate', handlePopState);
   }, [orderHistory, currentOrder]);
 
   const handleAddToCart = (item) => {

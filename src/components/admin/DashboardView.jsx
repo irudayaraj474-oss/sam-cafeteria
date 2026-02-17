@@ -104,11 +104,11 @@ const DashboardView = ({ orderHistory = [], usersCount = 0, menuCount = 0 }) => 
   const bestSelling = getBestSellingItems();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-white text-3xl font-bold">Dashboard Overview</h1>
-        <p className="text-paragraph mt-1">Good evening, Admin. Here's what's happening today.</p>
+        <h1 className="text-white text-2xl md:text-3xl font-bold">Dashboard Overview</h1>
+        <p className="text-paragraph text-sm md:text-base mt-1">Good evening, Admin. Here's what's happening today.</p>
       </div>
 
       {/* Stats Grid */}

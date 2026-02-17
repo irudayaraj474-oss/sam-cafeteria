@@ -10,7 +10,18 @@ import Modal from './components/admin/Modal';
 // Toast notifications can be added later if needed
 
 
-const AdminPage = ({ onBackToHome, orderHistory, setOrderHistory, menuItems, setMenuItems, onNavigateKitchen, updateOrderStatus, markOrderAsPaid }) => {
+const AdminPage = ({ 
+  onBackToHome, 
+  orderHistory, 
+  setOrderHistory, 
+  menuItems, 
+  setMenuItems, 
+  onNavigateKitchen, 
+  updateOrderStatus, 
+  markOrderAsPaid,
+  isMuted,
+  setIsMuted
+}) => {
   const [activeTab, setActiveTab] = useState(() => {
     const path = window.location.pathname.toLowerCase();
     if (path.includes('/menu')) return 'menu';
@@ -151,7 +162,14 @@ const AdminPage = ({ onBackToHome, orderHistory, setOrderHistory, menuItems, set
   };
 
   return (
-    <AdminLayout activeTab={activeTab} setActiveTab={handleSetTab} onLogout={onBackToHome} onNavigateKitchen={onNavigateKitchen}>
+    <AdminLayout 
+      activeTab={activeTab} 
+      setActiveTab={handleSetTab} 
+      onLogout={onBackToHome} 
+      onNavigateKitchen={onNavigateKitchen}
+      isMuted={isMuted}
+      setIsMuted={setIsMuted}
+    >
       {activeTab === 'dashboard' && (
         <DashboardView 
           orderHistory={orderHistory} 

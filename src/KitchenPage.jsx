@@ -5,25 +5,15 @@ import {
   ChefHat, 
   BellRing,
   CheckCheck,
-  ArrowRight
+  ArrowRight,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
-  // Prevent slash key from triggering search/navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === '/') {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown, true); // Capture phase
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, []);
-
+const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack, isMuted, setIsMuted }) => {
+  // ... (rest of the logic remains same)
   const safeOrders = Array.isArray(orderHistory) ? orderHistory : [];
   // Filter out cancelled orders
   const activeOrders = safeOrders.filter(o => o.status !== 'cancelled');
@@ -43,35 +33,50 @@ const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white p-6 overflow-x-auto">
+    <div className="min-h-screen bg-background text-white p-4 md:p-6 pb-20 overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <ChefHat className="w-7 h-7 text-white" />
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <ChefHat className="w-6 h-6 md:w-7 md:h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Kitchen Display System</h1>
-            <p className="text-paragraph">Live Order Tracking</p>
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight">Kitchen Display</h1>
+            <p className="text-paragraph text-xs md:text-sm">Live Order Tracking</p>
           </div>
         </div>
-        <button 
-          onClick={onBack}
-          className="px-6 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-medium"
-        >
-          Back to Dashboard
-        </button>
+        
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          {/* Mute Toggle */}
+          <button 
+            onClick={() => setIsMuted(!isMuted)}
+            className={cn(
+              "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all border",
+              isMuted ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-white/5 text-white border-white/10 hover:bg-white/10"
+            )}
+            title={isMuted ? "Unmute Notifications" : "Mute Notifications"}
+          >
+            {isMuted ? <VolumeX className="w-5 h-5 md:w-6 md:h-6" /> : <Volume2 className="w-5 h-5 md:w-6 md:h-6" />}
+          </button>
+
+          <button 
+            onClick={onBack}
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-medium text-sm"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
 
       {/* Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[calc(100vh-200px)]">
         {columns.map(col => {
           const ordersInCol = activeOrders.filter(o => o.status === col.id);
           
           return (
-            <div key={col.id} className="flex flex-col h-full bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+            <div key={col.id} className="flex flex-col min-h-[300px] h-full bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
               {/* Column Header */}
-              <div className={cn("p-4 border-b border-white/5 flex items-center justify-between", col.bg)}>
+              <div className={cn("p-4 border-b border-white/5 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md", col.bg)}>
                 <div className="flex items-center gap-2">
                   <col.icon className={cn("w-5 h-5", col.color)} />
                   <span className="font-bold text-lg">{col.label}</span>
@@ -82,7 +87,7 @@ const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
               </div>
 
               {/* Orders List */}
-              <div className="flex-grow overflow-y-auto p-4 space-y-4">
+              <div className="flex-grow p-4 space-y-4">
                 <AnimatePresence mode="popLayout">
                   {ordersInCol.map(order => (
                     <motion.div
@@ -104,7 +109,7 @@ const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
                              <span className="text-xl font-black text-white">#{order.id.toString().slice(-4)}</span>
                              <span className="text-xs font-medium text-paragraph bg-white/5 px-1.5 py-0.5 rounded">T-{order.table_number}</span>
                            </div>
-                           <span className="text-xs text-paragraph flex items-center gap-1 mt-1">
+                           <span className="text-[10px] text-paragraph flex items-center gap-1 mt-1 uppercase font-bold tracking-widest">
                              <Clock className="w-3 h-3" /> {order.time}
                            </span>
                          </div>
@@ -125,7 +130,7 @@ const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
                       {/* Notes */}
                       {order.note && (
                         <div className="bg-orange-500/10 border border-orange-500/20 p-2 rounded-lg mb-4">
-                          <p className="text-orange-400 text-xs italic">"{order.note}"</p>
+                          <p className="text-orange-400 text-[10px] italic">"{order.note}"</p>
                         </div>
                       )}
 
@@ -134,7 +139,7 @@ const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
                         <button
                           onClick={() => onUpdateStatus(order.id, getNextStatus(col.id))}
                           className={cn(
-                            "w-full py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all",
+                            "w-full py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all",
                             "bg-white/5 hover:bg-white/10 text-white border border-white/10 group-hover:border-primary/50 group-hover:text-primary"
                           )}
                         >
@@ -147,9 +152,9 @@ const KitchenPage = ({ orderHistory = [], onUpdateStatus, onBack }) => {
                     </motion.div>
                   ))}
                   {ordersInCol.length === 0 && (
-                     <div className="text-center py-10 opacity-30">
-                        <col.icon className="w-12 h-12 mx-auto mb-2" />
-                        <p>No orders</p>
+                     <div className="text-center py-12 opacity-20">
+                        <col.icon className="w-10 h-10 mx-auto mb-2" />
+                        <p className="text-sm">No orders</p>
                      </div>
                   )}
                 </AnimatePresence>

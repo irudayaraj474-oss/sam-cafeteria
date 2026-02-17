@@ -53,18 +53,18 @@ const OrderManagementView = ({ orderHistory, onUpdateStatus, onMarkPaid }) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-white text-3xl font-bold">Order Management</h1>
-          <p className="text-paragraph mt-1">Track and manage incoming orders in real-time.</p>
+          <h1 className="text-white text-2xl md:text-3xl font-bold">Order Management</h1>
+          <p className="text-paragraph text-sm md:text-base mt-1">Track and manage incoming orders in real-time.</p>
         </div>
       </div>
 
       {/* Filters */}
-      <GlassCard className="p-4 flex flex-col md:flex-row gap-4 items-center sticky top-4 z-30 backdrop-blur-xl bg-black/40">
-        <div className="relative flex-grow group w-full">
+      <GlassCard className="p-4 flex flex-col md:flex-row gap-4 items-center sticky top-0 md:top-4 z-30 backdrop-blur-xl bg-black/40">
+        <div className="relative grow group w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-paragraph group-focus-within:text-primary transition-colors w-5 h-5" />
           <input 
             type="text" 
@@ -80,7 +80,7 @@ const OrderManagementView = ({ orderHistory, onUpdateStatus, onMarkPaid }) => {
               key={status}
               onClick={() => setStatusFilter(status)}
               className={cn(
-                "px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border flex-shrink-0",
+                "px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
                 statusFilter === status 
                   ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105" 
                   : "bg-white/5 text-paragraph hover:bg-white/10 hover:text-white border-white/10"
@@ -118,7 +118,7 @@ const OrderManagementView = ({ orderHistory, onUpdateStatus, onMarkPaid }) => {
               </div>
 
               {/* Middle: Items */}
-              <div className="flex-grow bg-black/20 rounded-xl p-4 border border-white/5">
+              <div className="grow bg-black/20 rounded-xl p-4 border border-white/5">
                 <div className="flex flex-wrap gap-2">
                   {(order?.items || []).map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
@@ -135,11 +135,11 @@ const OrderManagementView = ({ orderHistory, onUpdateStatus, onMarkPaid }) => {
               </div>
 
               {/* Right: Payment & Status */}
-              <div className="flex flex-row lg:flex-col items-center lg:items-end gap-4 min-w-[200px] justify-between lg:justify-center">
+              <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-4 min-w-[200px] justify-between lg:justify-center border-t lg:border-t-0 border-white/5 pt-4 lg:pt-0">
                 
-                <div className="text-right">
+                <div className="text-left lg:text-right w-full sm:w-auto">
                   <div className="text-white font-black text-xl">₹{order?.total}</div>
-                  <div className="flex items-center gap-2 justify-end mt-1">
+                  <div className="flex items-center gap-2 justify-start lg:justify-end mt-1">
                     <span className={cn(
                       "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border flex items-center gap-1",
                       order?.payment_method === 'UPI' ? "text-blue-400 border-blue-400/30 bg-blue-400/10" : "text-green-400 border-green-400/30 bg-green-400/10"
@@ -156,7 +156,7 @@ const OrderManagementView = ({ orderHistory, onUpdateStatus, onMarkPaid }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                    <div className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all shadow-lg",
                       getStatusColor(order?.status)
@@ -165,31 +165,31 @@ const OrderManagementView = ({ orderHistory, onUpdateStatus, onMarkPaid }) => {
                       {order?.status}
                     </div>
                     
-            {/* Only show action for non-completed/cancelled */}
-            {['pending', 'preparing', 'ready'].includes(order?.status) && (
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => onMarkPaid(order.id)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-green-500/20 transition-all hover:scale-105"
-                >
-                  Paid & Complete
-                </button>
-                <div className="relative group/actions">
-                  <select 
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    value={order.status}
-                    onChange={(e) => onUpdateStatus(order.id, e.target.value)}
-                  >
-                    {statuses.filter(s => s !== 'All').map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                  <button className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors border border-white/10">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            )}
+                    {/* Only show action for non-completed/cancelled */}
+                    {['pending', 'preparing', 'ready'].includes(order?.status) && (
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => onMarkPaid(order.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-green-500/20 transition-all hover:scale-105"
+                        >
+                          Paid
+                        </button>
+                        <div className="relative group/actions">
+                          <select 
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            value={order.status}
+                            onChange={(e) => onUpdateStatus(order.id, e.target.value)}
+                          >
+                            {statuses.filter(s => s !== 'All').map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                          <button className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors border border-white/10">
+                            <CheckCircle2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                 </div>
               </div>
 

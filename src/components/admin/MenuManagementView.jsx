@@ -16,16 +16,16 @@ const MenuManagementView = ({ menuItems, onAddItem, onEditItem, onDeleteItem, on
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-white text-3xl font-bold">Menu Management</h1>
-          <p className="text-paragraph mt-1">Manage your food items, prices, and availability.</p>
+          <h1 className="text-white text-2xl md:text-3xl font-bold">Menu Management</h1>
+          <p className="text-paragraph text-sm md:text-base mt-1">Manage your food items, prices, and availability.</p>
         </div>
         <button 
           onClick={onAddItem}
-          className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"
+          className="w-full md:w-auto bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"
         >
           <Plus className="w-5 h-5" /> Add Food Item
         </button>
@@ -33,7 +33,7 @@ const MenuManagementView = ({ menuItems, onAddItem, onEditItem, onDeleteItem, on
 
       {/* Filters */}
       <GlassCard className="p-4 flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-grow group w-full">
+        <div className="relative grow group w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-paragraph group-focus-within:text-primary transition-colors w-5 h-5" />
           <input 
             type="text" 
@@ -101,7 +101,7 @@ const MenuManagementView = ({ menuItems, onAddItem, onEditItem, onDeleteItem, on
             </div>
 
             {/* Content */}
-            <div className="p-5 flex flex-col flex-grow">
+            <div className="p-5 flex flex-col grow">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="text-white font-bold text-lg leading-tight">{item.name}</h3>
                 <span className="text-primary font-bold text-lg">₹{item.price}</span>
